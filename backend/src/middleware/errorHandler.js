@@ -1,0 +1,24 @@
+module.exports = (err, req, res, next) => {
+  console.error('Error:', err);
+  
+  // 数据库错误
+  if (err.code === 'ER_DUP_ENTRY') {
+    return res.status(400).json({ message: '数据已存在' });
+  }
+  
+  // JWT错误
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({ message: '无效的认证令牌' });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({ message: '认证令牌已过期' });
+  }
+  
+  // 默认错误
+  res.status(err.status || 500).json({
+    message: err.message || '服务器内部错误',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+};
+
